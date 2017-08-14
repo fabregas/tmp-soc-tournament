@@ -1,0 +1,4 @@
+Test social tournament service
+==============================
+
+Just use `docker-compose up` for start service locally (at http://localhost:8080/).
