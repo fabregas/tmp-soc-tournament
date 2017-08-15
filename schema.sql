@@ -13,6 +13,7 @@ CREATE TABLE tournaments (
 CREATE TABLE tournament_players (
 	tournament_id VARCHAR(64) REFERENCES tournaments,
 	player_id VARCHAR(64) REFERENCES players,
-	backers VARCHAR(64)[]
+	backers VARCHAR(64)[],
+	PRIMARY KEY (tournament_id, player_id)
 )
 

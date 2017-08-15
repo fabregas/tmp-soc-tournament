@@ -57,12 +57,19 @@ func (t *Tournament) FundPoints(tr *sql.Tx, playerId string, points int) error {
 
 	var balance int
 	err := tr.QueryRow(
-		"SELECT balance FROM players WHERE id=$1 FOR UPDATE", playerId,
+		"SELECT balance FROM players WHERE id=$1 FOR UPDATE",
+		playerId,
 	).Scan(&balance)
 
 	if err == sql.ErrNoRows {
 		// No user found, create it!
-		_, err = tr.Exec("INSERT INTO players (id, balance) VALUES ($1, $2)", playerId, points)
+		if len(playerId) == 0 {
+			return Invalid("Invalid player id")
+		}
+		_, err = tr.Exec(
+			"INSERT INTO players (id, balance) VALUES ($1, $2)",
+			playerId, points,
+		)
 		return err
 	}
 	if err != nil {
@@ -70,7 +77,10 @@ func (t *Tournament) FundPoints(tr *sql.Tx, playerId string, points int) error {
 	}
 
 	newBalance := balance + points
-	_, err = tr.Exec("UPDATE players SET balance=$1 WHERE id=$2", newBalance, playerId)
+	_, err = tr.Exec(
+		"UPDATE players SET balance=$1 WHERE id=$2",
+		newBalance, playerId,
+	)
 	if err != nil {
 		return err
 	}
@@ -165,13 +175,19 @@ func (t *Tournament) ResultTournament(tr *sql.Tx, id string, winners []Winner) e
 		}
 	}
 
-	_, err = tr.Exec("UPDATE tournaments SET status=$1 WHERE id=$2", TS_CLOSED, id)
+	_, err = tr.Exec(
+		"UPDATE tournaments SET status=$1 WHERE id=$2",
+		TS_CLOSED, id,
+	)
 	return err
 }
 
 func (t *Tournament) Balance(db *sql.DB, playerId string) (int, error) {
 	var balance int
-	err := db.QueryRow("SELECT balance FROM players WHERE id=$1", playerId).Scan(&balance)
+	err := db.QueryRow(
+		"SELECT balance FROM players WHERE id=$1",
+		playerId,
+	).Scan(&balance)
 	switch {
 	case err == sql.ErrNoRows:
 		return 0, Invalid("Unknown player")

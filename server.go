@@ -17,13 +17,14 @@ func sendResp(w http.ResponseWriter, err error) {
 	case ValidationError:
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	default:
+		// return error message just for debug ;)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
 func (t *Tournament) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("requested path: ", r.URL.Path)
+	fmt.Printf("%s %s\n", r.Method, r.RequestURI)
+
 	switch r.URL.Path {
 	case "/take":
 		err := t.handleTake(r)

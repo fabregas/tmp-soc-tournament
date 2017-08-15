@@ -5,6 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	_ "github.com/lib/pq"
 )
@@ -48,7 +51,10 @@ type TournamentResult struct {
 }
 
 func main() {
+	stopSignal := make(chan os.Signal, 1)
+	signal.Notify(stopSignal, syscall.SIGINT, syscall.SIGTERM)
 	flag.Parse()
+
 	db, err := sql.Open("postgres", dbConnStr)
 	if err != nil {
 		panic(err)
@@ -61,5 +67,11 @@ func main() {
 	tournamentService := &Tournament{db}
 	http.Handle("/", tournamentService)
 	fmt.Println("Server is initialized and hosted at :8080")
-	http.ListenAndServe(":8080", nil)
+
+	go func() {
+		http.ListenAndServe(":8080", nil)
+	}()
+
+	<-stopSignal
+	db.Close()
 }
